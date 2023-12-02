@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "A simple NodeJS WebSocket server ",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js"
@@ -16,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/nashidahmed/websocket-server/issues"
   },
-  "homepage": "https://github.com/nashidahmed/websocket-server#readme"
+  "homepage": "https://github.com/nashidahmed/websocket-server#readme",
+  "dependencies": {
+    "ws": "^8.14.2"
+  }
 }
