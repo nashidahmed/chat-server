@@ -1,0 +1,20 @@
+{
+  "name": "websocket-server",
+  "version": "0.0.1",
+  "description": "A simple NodeJS WebSocket server ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nashidahmed/websocket-server.git"
+  },
+  "author": "Nashid Ahmed Shah",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nashidahmed/websocket-server/issues"
+  },
+  "homepage": "https://github.com/nashidahmed/websocket-server#readme"
+}
