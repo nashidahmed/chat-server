@@ -13,7 +13,7 @@ const server = http.createServer((req, res) => {
 const wss = new WebSocketServer({ server })
 
 wss.on("connection", (ws) => {
-  // This broadcasts the message to all other clients connected to this server
+  // This broadcasts the message to all clients connected to this server excluding the sender of the message
   const sendToAllClients = (message) => {
     wss.clients.forEach((client) => {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
@@ -23,7 +23,7 @@ wss.on("connection", (ws) => {
   }
 
   ws.once("message", (name) => {
-    // Send a message with the new client's name to all connected clients
+    // Send a message with the new client's name to all other clients
     sendToAllClients(
       JSON.stringify({
         type: "info",
