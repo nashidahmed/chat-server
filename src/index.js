@@ -2,6 +2,7 @@ import http from "http"
 import { WebSocketServer, WebSocket } from "ws"
 
 const PORT = process.env.PORT || 3000
+let users
 
 const server = http.createServer((req, res) => {
   // Handle HTTP requests if needed
@@ -12,47 +13,46 @@ const server = http.createServer((req, res) => {
 const wss = new WebSocketServer({ server })
 
 wss.on("connection", (ws) => {
-  ws.once("message", (name) => {
-    // Send a message with the new client's name to all connected clients
+  // This broadcasts the message to all clients connected to this server excluding the sender of the message
+  const sendToAllClients = (message) => {
     wss.clients.forEach((client) => {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
-        client.send(
-          JSON.stringify({
-            type: "info",
-            value: `${name} joined the chat`,
-          })
-        )
+        client.send(message)
       }
     })
+  }
 
-    ws.on("message", (message) => {
-      wss.clients.forEach((client) => {
-        if (client !== ws && client.readyState === WebSocket.OPEN) {
-          client.send(
-            JSON.stringify({
-              type: "message",
-              name: `${name}`,
-              value: `${message}`,
-            })
-          )
-        }
+  ws.once("message", (name) => {
+    // Send a message with the new client's name to all other clients
+    sendToAllClients(
+      JSON.stringify({
+        type: "info",
+        value: `${name} joined the chat`,
       })
+    )
+
+    // When a client sends a message broadcast it to all other clients
+    ws.on("message", (message) => {
+      const msg = JSON.parse(message).msg
+      const timestamp = JSON.parse(message).timestamp
+      sendToAllClients(
+        JSON.stringify({
+          type: "message",
+          name: `${name}`,
+          value: `${msg}`,
+          timestamp: `${timestamp}`,
+        })
+      )
     })
 
-    // Handle WebSocket connection closing
+    // When a client closes its connection, inform all other clients
     ws.on("close", () => {
-      console.log("Client disconnected")
-
-      wss.clients.forEach((client) => {
-        if (client !== ws && client.readyState === WebSocket.OPEN) {
-          client.send(
-            JSON.stringify({
-              type: "info",
-              value: `${name} left the chat`,
-            })
-          )
-        }
-      })
+      sendToAllClients(
+        JSON.stringify({
+          type: "info",
+          value: `${name} left the chat`,
+        })
+      )
     })
   })
 })
