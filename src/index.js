@@ -1,19 +1,23 @@
+import express from "express"
 import http from "http"
 import { WebSocketServer, WebSocket } from "ws"
+import enforce from "express-sslify"
 
-const PORT = process.env.PORT || 3000
-let users
-
-const server = http.createServer((req, res) => {
-  // Handle HTTP requests if needed
-  res.writeHead(200, { "Content-Type": "text/plain" })
-  res.end("WebSocket server is running")
-})
-
+const app = express()
+const server = http.createServer(app)
 const wss = new WebSocketServer({ server })
 
+const PORT = process.env.PORT || 3000
+let users = []
+
+// Middleware for enforcing HTTPS
+app.use(enforce.HTTPS({ trustProtoHeader: true }))
+
+app.get("/", (req, res) => {
+  res.send("WebSocket server is running")
+})
+
 wss.on("connection", (ws) => {
-  // This broadcasts the message to all clients connected to this server excluding the sender of the message
   const sendToAllClients = (message) => {
     wss.clients.forEach((client) => {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
@@ -23,7 +27,8 @@ wss.on("connection", (ws) => {
   }
 
   ws.once("message", (name) => {
-    // Send a message with the new client's name to all other clients
+    users.push({ name, ws })
+
     sendToAllClients(
       JSON.stringify({
         type: "info",
@@ -31,10 +36,8 @@ wss.on("connection", (ws) => {
       })
     )
 
-    // When a client sends a message broadcast it to all other clients
     ws.on("message", (message) => {
-      const msg = JSON.parse(message).msg
-      const timestamp = JSON.parse(message).timestamp
+      const { msg, timestamp } = JSON.parse(message)
       sendToAllClients(
         JSON.stringify({
           type: "message",
@@ -45,8 +48,8 @@ wss.on("connection", (ws) => {
       )
     })
 
-    // When a client closes its connection, inform all other clients
     ws.on("close", () => {
+      users = users.filter((user) => user.ws !== ws)
       sendToAllClients(
         JSON.stringify({
           type: "info",
