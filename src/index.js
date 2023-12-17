@@ -2,6 +2,7 @@ import express from "express"
 import http from "http"
 import { WebSocketServer, WebSocket } from "ws"
 import enforce from "express-sslify"
+import User from "./models/User.js"
 
 const app = express()
 const server = http.createServer(app)
